@@ -30,6 +30,12 @@ public class UserApp {
 			switch (menuNum) {
         
 			case 1: //로그인
+				
+				System.out.println("[로그인]");
+				System.out.println("회원정보를 입력하세요");
+				System.out.print("아이디: ");
+				
+				System.out.print("비밀번호: ");
 
         	
         	
@@ -38,7 +44,7 @@ public class UserApp {
            
 			case 2: //회원가입
 
-				System.out.println("회원가입");
+				System.out.println("[회원가입]");
 				System.out.println("회원정보를 입력하세요");
 				System.out.print("아이디: ");
 				String id = sc.nextLine();
