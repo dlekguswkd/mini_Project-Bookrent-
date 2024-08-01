@@ -1,6 +1,6 @@
 package bookrent;
 
-public class historyVo {
+public class HistoryVo {
 	
 	// 필드
 	private int historyNum;
@@ -10,11 +10,11 @@ public class historyVo {
 	private String returnDate;
 	
 	//생성자
-	public historyVo() {
+	public HistoryVo() {
 		super();
 	}
 
-	public historyVo(int historyNum, int bookId, int userNum, String rentDate, String returnDate) {
+	public HistoryVo(int historyNum, int bookId, int userNum, String rentDate, String returnDate) {
 		super();
 		this.historyNum = historyNum;
 		this.bookId = bookId;

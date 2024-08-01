@@ -7,7 +7,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 
 public class UserDao {
 
@@ -62,6 +61,7 @@ public class UserDao {
 
 	}
 
+	// -------------------------------------------------------------------------
 	// 회원가입
 	public int insertUser(String userId, String password, String userName, String phoneNum, String email) {
 
@@ -70,6 +70,25 @@ public class UserDao {
 		int count = -1;
 
 		try {
+			// 아이디 중복 체크
+			String checkIdQuery = "SELECT user_id FROM user WHERE user_id = ?";
+			pstmt = conn.prepareStatement(checkIdQuery);
+			pstmt.setString(1, userId);
+			rs = pstmt.executeQuery();
+			if (rs.next()) {
+				System.out.println(" ※ 이미 사용 중인 ID입니다 ※");
+				return count;
+			}
+
+			// 전화번호 중복 체크
+			String checkPhoneQuery = "SELECT phone_num FROM user WHERE phone_num = ?";
+			pstmt = conn.prepareStatement(checkPhoneQuery);
+			pstmt.setString(1, phoneNum);
+			rs = pstmt.executeQuery();
+			if (rs.next()) {
+				System.out.println(" ※ 이미 사용 중인 전화번호입니다 ※");
+				return count;
+			}
 
 			// 3. SQL문 준비 / 바인딩 / 실행
 			// sql문 준비
@@ -99,6 +118,7 @@ public class UserDao {
 
 	}
 
+	// -------------------------------------------------------------------------
 	// 로그인
 	public int login(String userId, String password) {
 
@@ -115,7 +135,7 @@ public class UserDao {
 			pstmt.setString(1, userId);
 			pstmt.setString(2, password);
 
-			ResultSet rs = pstmt.executeQuery();
+			rs = pstmt.executeQuery();
 
 			if (rs.next() == true) {
 				// System.out.println("로그인 성공");
@@ -135,58 +155,114 @@ public class UserDao {
 
 	}
 
+	// -------------------------------------------------------------------------
 	// 히스토리
 	public void displayUserRentals(int userNum) {
-	      this.getConnection();
-	      try {
-	         String query = "";
-	         query += " SELECT b.title ";
-	         query += "        ,b.author ";
-	         query += "       ,h.rent_date ";
-	         query += "       ,h.return_date ";
-	         query += " FROM history h ";
-	         query += " JOIN book b ON h.book_id = b.book_id ";
-	         query += " WHERE h.user_num = ? ";
-	         query += " ORDER BY h.rent_date DESC ";
+		this.getConnection();
+		try {
+			String query = "";
+			query += " SELECT b.title ";
+			query += "        ,b.author ";
+			query += "       ,h.rent_date ";
+			query += "       ,h.return_date ";
+			query += " FROM history h ";
+			query += " JOIN book b ON h.book_id = b.book_id ";
+			query += " WHERE h.user_num = ? ";
+			query += " ORDER BY h.rent_date DESC ";
 
-	         pstmt = conn.prepareStatement(query);
-	         pstmt.setInt(1, userNum);
-	         rs = pstmt.executeQuery();
-	         System.out.println("===== 대여 및 반납 현황 =====");
+			pstmt = conn.prepareStatement(query);
+			pstmt.setInt(1, userNum);
+			rs = pstmt.executeQuery();
+			System.out.println("┌──────────────────────────────────┐");
+			System.out.println("│         도서 대여 및 반납 현황         │");
+			System.out.println("└──────────────────────────────────┘");
 
-	         while (rs.next()) {
-	            String title = rs.getString("title");
-	            String author = rs.getString("author");
-	            String rentDate = rs.getString("rent_date");
-	            String returnDate = rs.getString("return_date");
-	            System.out.println("책 제목: " + title + ", 작가: " + author + ", 대여 날짜: " + rentDate + ", 반납 날짜: "
-	                  + (returnDate != null ? returnDate : "반납 안됨"));
-	         }
-	      } catch (SQLException e) {
-	         System.out.println("error:" + e);
-	      } 
-	         this.close();
-	      }
+			// Check if there are any records
+			if (!rs.isBeforeFirst()) { // rs.isBeforeFirst() returns false if the ResultSet is empty
+				System.out.println(" ※ 대여 기록이 없습니다 ※ ");
+			} else {
+				while (rs.next()) {
+					String title = rs.getString("title");
+					String author = rs.getString("author");
+					String rentDate = rs.getString("rent_date");
+					String returnDate = rs.getString("return_date");
+					System.out.println(" ▶ 책 제목: " + title);
+					System.out.println(" ▶ 작가: " + author);
+					System.out.println(" ▶ 대여 날짜: " + rentDate);
+					System.out.println(" ▶ 반납 날짜: " + (returnDate != null ? returnDate : "반납 안됨"));
+					System.out.println("-------------------------------");
+				}
+			}
+		} catch (SQLException e) {
+			System.out.println("error:" + e);
+		}
+		this.close();
+	}
 
 	// -------------------------------------------------------------------------
 	// 회원수정
 	public int updateUser(int userNum, String password, String phoneNum, String email) {
-	      this.getConnection();
-	      int count = -1;
-	      try {
-	         String query = "UPDATE user SET password = ?, phone_num = ?, email = ? WHERE user_num = ?";
-	         pstmt = conn.prepareStatement(query);
-	         pstmt.setString(1, password);
-	         pstmt.setString(2, phoneNum);
-	         pstmt.setString(3, email);
-	         pstmt.setInt(4, userNum);
-	         count = pstmt.executeUpdate();
-	      } catch (SQLException e) {
-	         System.out.println("error:" + e);
-	      } finally {
-	         this.close();
-	      }
-	      return count;
+		this.getConnection();
+		int count = -1;
+		try {
+
+			String query = "UPDATE user SET password = ?, phone_num = ?, email = ? WHERE user_num = ?";
+			pstmt = conn.prepareStatement(query);
+			pstmt.setString(1, password);
+			pstmt.setString(2, phoneNum);
+			pstmt.setString(3, email);
+			pstmt.setInt(4, userNum);
+			count = pstmt.executeUpdate();
+		} catch (SQLException e) {
+			System.out.println("error:" + e);
+		} finally {
+			this.close();
+		}
+		return count;
 
 	}
+
+	public List<UserVo> selectUserAll() {
+		List<UserVo> userList = new ArrayList<UserVo>();
+
+		this.getConnection();
+
+		try {
+
+			// 3. SQL문 준비 / 바인딩 / 실행
+			// *sql문 준비
+			String query = "";
+			query += " select 	* ";
+			query += " from user ";
+			query += " order by user_id asc ";
+
+			// *바인딩
+			pstmt = conn.prepareStatement(query);
+
+			// *실행
+			rs = pstmt.executeQuery();
+
+			// 4.결과처리
+			// 리스트로 만들기
+			while (rs.next()) {
+				int book_num = rs.getInt("user_num");
+				String user_id = rs.getString("user_id");
+				String password = rs.getString("password");
+				String user_name = rs.getString("user_name");
+				String phone_num = rs.getString("phone_num");
+				String email = rs.getString("email");
+
+				UserVo userVo = new UserVo(book_num, user_id, password, user_name, phone_num, email);
+				userList.add(userVo);
+			}
+
+		} catch (SQLException e) {
+			System.out.println("error:" + e);
+		}
+
+		this.close();
+
+		return userList; // 리스트의 *주소를 리턴해준다
+
+	}// 유저전체리스트
 }
